@@ -1,20 +1,20 @@
+import 'package:circuit_project/providers/data_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 class ItemsComponent extends StatefulWidget {
   const ItemsComponent({
     Key? key,
     required this.componentName,
     required this.index,
-    required this.selected,
-    this.selectedIndex,
+    required this.selectedIndex,
   }) : super(key: key);
 
   final String componentName;
   final int index;
   final selectedIndex;
-  final Function(int) selected;
 
   @override
   _ItemsComponent createState() => _ItemsComponent();
@@ -25,11 +25,13 @@ class _ItemsComponent extends State<ItemsComponent> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        widget.selected(widget.index);
+          Provider.of<DataProvider>(context,listen: false).setSelectedIndex(widget.index);
       },
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
-      child: Container(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 200),
+        curve: Curves.easeIn,
         width: ScreenUtil().screenWidth * .2,
         margin: EdgeInsetsDirectional.all(6.0),
         decoration: BoxDecoration(
@@ -37,7 +39,8 @@ class _ItemsComponent extends State<ItemsComponent> {
           color: widget.selectedIndex == widget.index
               ? Colors.deepOrangeAccent
               : Colors.white,
-          boxShadow: [
+          boxShadow: widget.selectedIndex == widget.index
+          ?  null:[
             BoxShadow(
               color: Colors.black26,
               blurRadius: 5.0,
