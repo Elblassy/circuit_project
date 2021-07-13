@@ -10,11 +10,13 @@ class ItemsComponent extends StatefulWidget {
     required this.componentName,
     required this.index,
     required this.selectedIndex,
+    required this.onSelect,
   }) : super(key: key);
 
   final String componentName;
   final int index;
-  final selectedIndex;
+  final int selectedIndex;
+  final Function onSelect;
 
   @override
   _ItemsComponent createState() => _ItemsComponent();
@@ -25,7 +27,10 @@ class _ItemsComponent extends State<ItemsComponent> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-          Provider.of<DataProvider>(context,listen: false).setSelectedIndex(widget.index);
+        Provider.of<DataProvider>(context, listen: false)
+            .setSelectedIndex(widget.index);
+
+        widget.onSelect();
       },
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
@@ -40,12 +45,13 @@ class _ItemsComponent extends State<ItemsComponent> {
               ? Colors.deepOrangeAccent
               : Colors.white,
           boxShadow: widget.selectedIndex == widget.index
-          ?  null:[
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 5.0,
-            )
-          ],
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 5.0,
+                  )
+                ],
         ),
         child: Center(
           child: Text(

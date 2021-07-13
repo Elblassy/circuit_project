@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:circuit_project/cloud_functions/network_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -9,10 +8,12 @@ import '../models/component.dart';
 class DataProvider with ChangeNotifier {
   List<NodeElement> _nodes = [];
   List<Component> _components = [];
+  String _ground = "";
+  String _result = "";
 
   int _selectedComponentIndex = 0;
 
-  solveCircuit(File croppedImage) async {
+  getCircuitData(File croppedImage) async {
     try {
       final jsonData = await upload(croppedImage);
       print(jsonData);
@@ -31,6 +32,8 @@ class DataProvider with ChangeNotifier {
         resultComponent.add(component);
       }
 
+      _ground = jsonData['ground'];
+
       _nodes = resultNodes;
       _components = resultComponent;
       _selectedComponentIndex = 0;
@@ -40,8 +43,27 @@ class DataProvider with ChangeNotifier {
     }
   }
 
+  solveCircuit() async {
+    try {
+      _result = "";
+      final jsonData = await solve(components, ground);
+      _result = jsonData ?? "";
+      notifyListeners();
+    } catch (e) {
+      print(e);
+    }
+  }
+
   List<NodeElement> get nodes {
     return _nodes;
+  }
+
+  String get result {
+    return _result;
+  }
+
+  String get ground {
+    return _ground;
   }
 
   List<Component> get components {
@@ -59,5 +81,9 @@ class DataProvider with ChangeNotifier {
   void setSelectedIndex(int index) {
     _selectedComponentIndex = index;
     notifyListeners();
+  }
+
+  void setSelectedComponentValue(String value) {
+    components[selectedComponentIndex].value = value;
   }
 }

@@ -1,7 +1,5 @@
-import 'package:circuit_project/screens/solving_page/circuit_page.dart';
 import 'package:circuit_project/providers/data_provider.dart';
 import 'package:circuit_project/screens/upload_screen/upload_image.dart';
-import 'package:circuit_project/test_drawing_screen.dart';
 import 'package:circuit_project/utils/tools.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

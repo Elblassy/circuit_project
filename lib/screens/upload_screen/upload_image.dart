@@ -84,12 +84,18 @@ class _UploadImageState extends State<UploadImage> {
           ),
           ValueListenableBuilder<bool>(
             builder: (context, loading, child) =>
-                loading ? LoadingOverlay() : Container(),
+                loading ? LoadingOverlay(loadingText: "Uploading Image...",) : Container(),
             valueListenable: _loading,
           )
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
   }
 }
 
@@ -113,7 +119,7 @@ void uploadAndProcessImage(
 
   if (croppedImage != null) {
     loading.value = true;
-    await Provider.of<DataProvider>(context,listen: false).solveCircuit(croppedImage);
+    await Provider.of<DataProvider>(context,listen: false).getCircuitData(croppedImage);
     loading.value = false;
     Navigator.of(context).push(CupertinoPageRoute(
       builder: (context) => CircuitPage(),
