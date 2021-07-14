@@ -21,6 +21,8 @@ class Component {
   List<List<int>> points;
   List<double> topLeft;
   String value;
+  String? current;
+  String? voltage;
   double width;
   double xCenter;
   double yCenter;
@@ -39,6 +41,7 @@ class Component {
         width: json["width"].toDouble(),
         xCenter: json["x_center"].toDouble(),
         yCenter: json["y_center"].toDouble(),
+
       );
 
   Map<String, dynamic> toJson() => {

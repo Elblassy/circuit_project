@@ -22,6 +22,9 @@ class CircuitPage extends StatefulWidget {
 
 class _CircuitPageState extends State<CircuitPage> {
   final valueController = TextEditingController();
+  final voltController = TextEditingController();
+  final currentController = TextEditingController();
+  var solved = false;
 
   @override
   Widget build(BuildContext context) {
@@ -54,61 +57,47 @@ class _CircuitPageState extends State<CircuitPage> {
                   ),
                 ),
               ),
-              Container(
-                width: ScreenUtil().screenWidth * .3,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey,
-                      spreadRadius: .1,
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Consumer<DataProvider>(
-                    builder: (context, provider, child) => TextField(
-                      decoration: InputDecoration.collapsed(
-                        hintText: provider.selectedComponent.value,
-                      ),
-                      controller: valueController,
-                      onSubmitted: (String value) {
-                        if (isNumeric(value)) {
-                          Provider.of<DataProvider>(context, listen: false)
-                              .setSelectedComponentValue(value);
-                        } else {
-                          final snackBar = SnackBar(
-                            content: Text(
-                              'Numbers only is allowed',
-                              style: GoogleFonts.mPlusRounded1c(
-                                textStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 32.sp,
-                                  decoration: TextDecoration.none,
-                                ),
-                              ),
+              solved
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          currentController.text,
+                          style: GoogleFonts.mPlusRounded1c(
+                            textStyle: TextStyle(
+                              color: Colors.deepOrangeAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 32.sp,
+                              decoration: TextDecoration.none,
                             ),
-                            backgroundColor: Colors.red[500],
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                          valueController.text = "";
-                        }
-                      },
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.mPlusRounded1c(
-                        textStyle: TextStyle(
-                          color: Colors.black,
-                          fontSize: 42.sp,
-                          decoration: TextDecoration.none,
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+                        Text(
+                          voltController.text,
+                          style: GoogleFonts.mPlusRounded1c(
+                            textStyle: TextStyle(
+                              color: Colors.deepOrangeAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 32.sp,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          valueController.text,
+                          style: GoogleFonts.mPlusRounded1c(
+                            textStyle: TextStyle(
+                              color: Colors.deepOrangeAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 32.sp,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : TextFieldResis(),
               SizedBox(
                 height: 10,
               ),
@@ -125,11 +114,19 @@ class _CircuitPageState extends State<CircuitPage> {
                         index: index,
                         onSelect: () {
                           setState(() {
-                            valueController.text = Provider.of<DataProvider>(
-                                    context,
+                            var data = Provider.of<DataProvider>(context,
                                     listen: false)
-                                .selectedComponent
-                                .value;
+                                .selectedComponent;
+                            if (solved) {
+                              voltController.text = data.voltage ?? "";
+
+                              currentController.text = data.current ?? "";
+
+                              valueController.text =
+                                  data.name + " = " + data.value;
+                            } else {
+                              valueController.text = data.value;
+                            }
                           });
                         },
                       );
@@ -221,102 +218,115 @@ class _CircuitPageState extends State<CircuitPage> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(14.0),
-                child: Container(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: Color(0xFF421c4b),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
+              solved
+                  ? Container()
+                  : Padding(
+                      padding: const EdgeInsets.all(14.0),
+                      child: Container(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: Color(0xFF421c4b),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                          ),
+                          onPressed: () async {
+                            showDialog(
+                              context: context,
+                              builder: (_) => LoadingOverlay(
+                                loadingText: "Solving Circuit...",
+                              ),
+                            );
+                            var data = Provider.of<DataProvider>(context,
+                                listen: false);
+                            await data.solveCircuit();
+                            navKey.currentState?.pop();
+                            setState(() {
+                              solved = true;
+
+                              voltController.text = data.selectedComponent.voltage ?? "";
+
+                              currentController.text = data.selectedComponent.current ?? "";
+
+                              valueController.text =
+                                  data.selectedComponent.name + " = " + data.selectedComponent.value;
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Text(
+                              "Solve Circuit",
+                              style: GoogleFonts.mPlusRounded1c(
+                                textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 38.sp,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    onPressed: () async {
-                      showDialog(
-                        context: context,
-                        builder: (_) => LoadingOverlay(
-                          loadingText: "Solving Circuit...",
-                        ),
-                      );
-                      await Provider.of<DataProvider>(context, listen: false)
-                          .solveCircuit();
-                      navKey.currentState?.pop();
-                      showModalBottomSheet(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                        ),
-                        context: context,
-                        builder: (context) => Container(
-                          height: ScreenUtil().screenHeight * .5,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft: const Radius.circular(20.0),
-                                        topRight: const Radius.circular(20.0))),
-                                child: Center(
-                                  child: Text(
-                                    Provider.of<DataProvider>(context,
-                                            listen: false)
-                                        .result,
-                                    style: GoogleFonts.mPlusRounded1c(
-                                      textStyle: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 38.sp,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    primary: Color(0xFF421c4b),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                  ),
-                                  onPressed: () {},
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12.0),
-                                    child: Text(
-                                      "Done",
-                                      style: GoogleFonts.mPlusRounded1c(
-                                        textStyle: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 38.sp,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text(
-                        "Solve Circuit",
-                        style: GoogleFonts.mPlusRounded1c(
-                          textStyle: TextStyle(
-                            color: Colors.white,
-                            fontSize: 38.sp,
-                          ),
-                        ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Container TextFieldResis() {
+    return Container(
+      width: ScreenUtil().screenWidth * .3,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey,
+            spreadRadius: .1,
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Consumer<DataProvider>(
+          builder: (context, provider, child) => TextField(
+            decoration: InputDecoration.collapsed(
+              hintText: provider.selectedComponent.value,
+            ),
+            controller: valueController,
+            onSubmitted: (String value) {
+              if (isNumeric(value)) {
+                Provider.of<DataProvider>(context, listen: false)
+                    .setSelectedComponentValue(value);
+              } else {
+                final snackBar = SnackBar(
+                  content: Text(
+                    'Numbers only is allowed',
+                    style: GoogleFonts.mPlusRounded1c(
+                      textStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32.sp,
+                        decoration: TextDecoration.none,
                       ),
                     ),
                   ),
-                ),
+                  backgroundColor: Colors.red[500],
+                );
+                ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                valueController.text = "";
+              }
+            },
+            textAlign: TextAlign.center,
+            style: GoogleFonts.mPlusRounded1c(
+              textStyle: TextStyle(
+                color: Colors.black,
+                fontSize: 42.sp,
+                decoration: TextDecoration.none,
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -354,13 +364,10 @@ class FaceOutLinePainter extends CustomPainter {
       nodePath.close();
       canvas.drawPath(nodePath, paint);
     }
-
-    // TODO: implement paint
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    // TODO: implement shouldRepaint
     return false;
   }
 }
