@@ -168,7 +168,6 @@ class _CircuitPageState extends State<CircuitPage> {
                                 ),
                                 width: constraints.maxWidth,
                                 height: constraints.maxHeight),
-
                             ...provider.components
                                 .asMap()
                                 .map((index, comp) {

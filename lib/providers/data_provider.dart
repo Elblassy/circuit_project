@@ -50,8 +50,9 @@ class DataProvider with ChangeNotifier {
       _result = jsonData ?? "";
 
       var tempResults = _result.split("\n");
-      tempResults.removeAt(0);
       for (var i in tempResults) {
+        if (i.trim().isEmpty)
+          continue;
         for (var c in components) {
           if (c.name == i.substring(0, i.indexOf("=")).trim()) {
             c.current = i.substring(i.indexOf("C"), i.indexOf(","));
